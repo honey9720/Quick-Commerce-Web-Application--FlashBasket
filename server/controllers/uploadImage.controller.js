@@ -1,24 +1,31 @@
 import uploadImageClodinary from "../utils/uploadImageClodinary.js"
 
-const uploadImageController = async(request,response)=>{
-    try {
-        const file = request.file
+const uploadImageController = async (req, res) => {
+  console.log("Upload controller hit");
+  console.log("File received:", req.file);
 
-        const uploadImage = await uploadImageClodinary(file)
+  try {
+    const uploadImage = await uploadImageClodinary(req.file);
 
-        return response.json({
-            message : "Upload done",
-            data : uploadImage,
-            success : true,
-            error : false
-        })
-    } catch (error) {
-        return response.status(500).json({
-            message : error.message || error,
-            error : true,
-            success : false
-        })
-    }
-}
+    return res.json({
+      message: "Upload done",
+      data: {
+        filename: req.file.filename,
+        url: uploadImage?.url || `/uploads/avatars/${req.file.filename}`  // Cloudinary or local
+      },
+      success: true,
+      error: false
+    });
+
+  } catch (error) {
+    console.error("Upload error:", error);
+    return res.status(500).json({
+      message: error.message || error,
+      error: true,
+      success: false
+    });
+  }
+};
+
 
 export default uploadImageController

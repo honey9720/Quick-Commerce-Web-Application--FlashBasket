@@ -8,78 +8,78 @@ import Axios from '../utils/Axios'
 import SummaryApi from '../common/SummaryApi'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
-import { loadStripe } from '@stripe/stripe-js'
+//import { loadStripe } from '@stripe/stripe-js'
 
 const CheckoutPage = () => {
-  const { notDiscountTotalPrice, totalPrice, totalQty, fetchCartItem,fetchOrder } = useGlobalContext()
+  const { notDiscountTotalPrice, totalPrice, totalQty, fetchCartItem, fetchOrder } = useGlobalContext()
   const [openAddress, setOpenAddress] = useState(false)
   const addressList = useSelector(state => state.addresses.addressList)
   const [selectAddress, setSelectAddress] = useState(0)
   const cartItemsList = useSelector(state => state.cartItem.cart)
   const navigate = useNavigate()
 
-  const handleCashOnDelivery = async() => {
-      try {
-          const response = await Axios({
-            ...SummaryApi.CashOnDeliveryOrder,
-            data : {
-              list_items : cartItemsList,
-              addressId : addressList[selectAddress]?._id,
-              subTotalAmt : totalPrice,
-              totalAmt :  totalPrice,
-            }
-          })
-
-          const { data : responseData } = response
-
-          if(responseData.success){
-              toast.success(responseData.message)
-              if(fetchCartItem){
-                fetchCartItem()
-              }
-              if(fetchOrder){
-                fetchOrder()
-              }
-              navigate('/success',{
-                state : {
-                  text : "Order"
-                }
-              })
-          }
-
-      } catch (error) {
-        AxiosToastError(error)
-      }
-  }
-
-  const handleOnlinePayment = async()=>{
+  const handleCashOnDelivery = async () => {
     try {
-        toast.loading("Loading...")
-        const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY
-        const stripePromise = await loadStripe(stripePublicKey)
-       
-        const response = await Axios({
-            ...SummaryApi.payment_url,
-            data : {
-              list_items : cartItemsList,
-              addressId : addressList[selectAddress]?._id,
-              subTotalAmt : totalPrice,
-              totalAmt :  totalPrice,
-            }
-        })
+      const response = await Axios({
+        ...SummaryApi.CashOnDeliveryOrder,
+        data: {
+          list_items: cartItemsList,
+          addressId: addressList[selectAddress]?._id,
+          subTotalAmt: totalPrice,
+          totalAmt: totalPrice,
+        }
+      })
 
-        const { data : responseData } = response
+      const { data: responseData } = response
 
-        stripePromise.redirectToCheckout({ sessionId : responseData.id })
-        
-        if(fetchCartItem){
+      if (responseData.success) {
+        toast.success(responseData.message)
+        if (fetchCartItem) {
           fetchCartItem()
         }
-        if(fetchOrder){
+        if (fetchOrder) {
           fetchOrder()
         }
+        navigate('/success', {
+          state: {
+            text: "Order"
+          }
+        })
+      }
+
     } catch (error) {
-        AxiosToastError(error)
+      AxiosToastError(error)
+    }
+  }
+
+  const handleOnlinePayment = async () => {
+    try {
+      toast.loading("Loading...")
+      const stripePublicKey = import.meta.env.VITE_STRIPE_PUBLIC_KEY
+      const stripePromise = await loadStripe(stripePublicKey)
+
+      const response = await Axios({
+        ...SummaryApi.payment_url,
+        data: {
+          list_items: cartItemsList,
+          addressId: addressList[selectAddress]?._id,
+          subTotalAmt: totalPrice,
+          totalAmt: totalPrice,
+        }
+      })
+
+      const { data: responseData } = response
+
+      stripePromise.redirectToCheckout({ sessionId: responseData.id })
+
+      if (fetchCartItem) {
+        fetchCartItem()
+      }
+      if (fetchOrder) {
+        fetchOrder()
+      }
+    } catch (error) {
+      AxiosToastError(error)
     }
   }
   return (
@@ -141,7 +141,13 @@ const CheckoutPage = () => {
             </div>
           </div>
           <div className='w-full flex flex-col gap-4'>
-            <button className='py-2 px-4 bg-green-600 hover:bg-green-700 rounded text-white font-semibold' onClick={handleOnlinePayment}>Online Payment</button>
+            <button
+              className='py-2 px-4 bg-green-600 rounded text-white font-semibold opacity-50 cursor-not-allowed'
+              onClick={handleOnlinePayment}
+              disabled
+            >
+              Online Payment(coming soon)
+            </button>
 
             <button className='py-2 px-4 border-2 border-green-600 font-semibold text-green-600 hover:bg-green-600 hover:text-white' onClick={handleCashOnDelivery}>Cash on Delivery</button>
           </div>

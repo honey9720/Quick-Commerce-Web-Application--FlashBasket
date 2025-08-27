@@ -1,6 +1,6 @@
 {
     "version" : 2,
-    "name" : "Blinkit",
+    "name" : "FlashBasket",
     "builds" : [
         {
             "src" : "./index.js",
