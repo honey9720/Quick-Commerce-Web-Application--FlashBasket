@@ -1,5 +1,7 @@
 Quick Commerce Web Application – FlashBasket
 
+Live Site URL: https://quick-commerce-web-application-wir1.onrender.com
+
 A MERN stack-based quick commerce platform that allows users to browse products, add to cart, and place orders with an admin dashboard for product and order management.
 
 🚀 Setup Instructions
