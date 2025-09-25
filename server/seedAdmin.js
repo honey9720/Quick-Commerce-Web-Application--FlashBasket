@@ -12,7 +12,8 @@ async function createAdmin() {
       useUnifiedTopology: true,
     });
 
-    const adminEmail = "admin@example.com";
+    const adminEmail = "yourAdminMail";  //Replace with actual Mail if needed
+
     const existingAdmin = await UserModel.findOne({ email: adminEmail });
 
     if (existingAdmin) {
@@ -20,7 +21,8 @@ async function createAdmin() {
       process.exit(0);
     }
 
-    const hashedPassword = await bcrypt.hash("Admin@123", 10);
+    const hashedPassword = await bcrypt.hash("yourAdminPassword", 10);// Replace with actual password if needed
+
 
     const adminUser = new UserModel({
       name: "Super Admin",
@@ -34,7 +36,7 @@ async function createAdmin() {
     await adminUser.save();
     console.log("🎉 Admin user created successfully!");
     console.log("Email:", adminEmail);
-    console.log("Password:", "Admin@123");
+    console.log("Password:", "yourAdminPassword"); // Replace with actual password if needed
 
     process.exit(0);
   } catch (error) {
