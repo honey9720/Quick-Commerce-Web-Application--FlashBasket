@@ -1,5 +1,5 @@
 // Base URL comes from Vite env or defaults to backend
-export const baseURL = import.meta.env.VITE_API_URL || "http://localhost:8080";
+export const baseURL = import.meta.env.VITE_API_URL || "https://quick-commerce-web-application.onrender.com";
 
 const SummaryApi = {
     // User
@@ -55,3 +55,4 @@ const SummaryApi = {
 };
 
 export default SummaryApi;
+
