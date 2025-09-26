@@ -1,6 +1,6 @@
 import React from 'react'
 import banner from '../assets/bannernew.jpeg'
-import bannerMobile from '../assets/banner-mobile.png'
+import bannerMobile from '../assets/banner-mobile.jpg'
 import { useSelector } from 'react-redux'
 import { valideURLConvert } from '../utils/valideURLConvert'
 import { useNavigate } from 'react-router-dom'
@@ -62,5 +62,6 @@ const Home = () => {
 }
 
 export default Home
+
 
 
