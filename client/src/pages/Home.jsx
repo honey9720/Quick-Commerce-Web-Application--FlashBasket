@@ -1,6 +1,6 @@
 import React from 'react'
 import banner from '../assets/bannernew.jpeg'
-import bannerMobile from '../assets/mobile.png'
+import bannerMobile from '../assets/banner-mobile.png'
 import { useSelector } from 'react-redux'
 import { valideURLConvert } from '../utils/valideURLConvert'
 import { useNavigate } from 'react-router-dom'
@@ -25,7 +25,7 @@ const Home = () => {
       <div className='container mx-auto'>
         <div className={`w-full h-full min-h-48 bg-blue-100 rounded ${!banner && "animate-pulse my-2"}`}>
           <img src={banner} className='w-full h-full hidden lg:block' alt='banner' />
-          <img src={mobile} className='w-full h-full lg:hidden' alt='banner' />
+          <img src={bannerMobile} className='w-full h-full lg:hidden' alt='banner' />
         </div>
       </div>
 
@@ -62,4 +62,5 @@ const Home = () => {
 }
 
 export default Home
+
 
