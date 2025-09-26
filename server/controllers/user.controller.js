@@ -5,60 +5,79 @@ import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import jwt from "jsonwebtoken";
 
 // 🟢 Register
-export async function registerController(request, response) {
+import UserModel from "../models/user.model.js";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+
+// 🔑 Generate Access Token
+const generateAccessToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.SECRET_KEY_ACCESS_TOKEN, {
+    expiresIn: "15m",
+  });
+};
+
+// 🔑 Generate Refresh Token
+const generateRefreshToken = (userId) => {
+  return jwt.sign({ id: userId }, process.env.SECRET_KEY_REFRESH_TOKEN, {
+    expiresIn: "7d",
+  });
+};
+
+// 🟢 Register
+export const registerController = async (req, res) => {
   try {
-    const { name, email, password } = request.body;
+    const { name, email, password } = req.body;
 
     if (!name || !email || !password) {
-      return response.status(400).json({
+      return res.status(400).json({
         message: "Name, Email, and Password are required",
         error: true,
         success: false,
       });
     }
 
+    // Check if user already exists
     const existingUser = await UserModel.findOne({ email });
     if (existingUser) {
-      return response.status(400).json({
-        message: "User already registered",
+      return res.status(400).json({
+        message: "Email already registered",
         error: true,
         success: false,
       });
     }
 
-    const salt = await bcryptjs.genSalt(10);
-    const hashPassword = await bcryptjs.hash(password, salt);
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-    const newUser = new UserModel({
+    // Create new user
+    const newUser = await UserModel.create({
       name,
       email,
-      password: hashPassword,
+      password: hashedPassword,
     });
 
-    await newUser.save();
-
-    return response.json({
+    return res.status(201).json({
       message: "User registered successfully",
-      error: false,
       success: true,
+      error: false,
     });
-  } catch (error) {
-    console.error("🔥 RegisterController error:", error);
-    return response.status(500).json({
-      message: error.message || "Internal server error",
+  } catch (err) {
+    console.error("🔥 RegisterController Error:", err);
+    return res.status(500).json({
+      message: err.message || "Internal Server Error",
       error: true,
       success: false,
     });
   }
-}
+};
 
 // 🟢 Login
-export async function loginController(request, response) {
+export const loginController = async (req, res) => {
   try {
-    const { email, password } = request.body;
+    const { email, password } = req.body;
 
     if (!email || !password) {
-      return response.status(400).json({
+      return res.status(400).json({
         message: "Provide email and password",
         error: true,
         success: false,
@@ -67,7 +86,7 @@ export async function loginController(request, response) {
 
     const user = await UserModel.findOne({ email });
     if (!user) {
-      return response.status(400).json({
+      return res.status(400).json({
         message: "User not registered",
         error: true,
         success: false,
@@ -75,109 +94,112 @@ export async function loginController(request, response) {
     }
 
     if (user.status !== "Active") {
-      return response.status(400).json({
-        message: "Contact Admin - account not active",
+      return res.status(403).json({
+        message: "Account inactive. Contact Admin.",
         error: true,
         success: false,
       });
     }
 
-    const checkPassword = await bcryptjs.compare(password, user.password);
-    if (!checkPassword) {
-      return response.status(400).json({
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+      return res.status(400).json({
         message: "Incorrect password",
         error: true,
         success: false,
       });
     }
 
-    const accessToken = await generatedAccessToken(user._id);
-    const refreshToken = await generatedRefreshToken(user._id);
+    // Generate tokens
+    const accessToken = generateAccessToken(user._id);
+    const refreshToken = generateRefreshToken(user._id);
 
-    await UserModel.findByIdAndUpdate(user._id, {
-      last_login_date: new Date(),
-      refresh_token: refreshToken,
-    });
+    // Store refresh token in DB
+    await UserModel.findByIdAndUpdate(user._id, { refresh_token: refreshToken });
 
-    const cookiesOption = {
+    // Set secure cookies
+    const cookieOptions = {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: process.env.NODE_ENV === "production", // true on Render
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     };
 
-    response.cookie("accessToken", accessToken, cookiesOption);
-    response.cookie("refreshToken", refreshToken, cookiesOption);
+    res.cookie("accessToken", accessToken, cookieOptions);
+    res.cookie("refreshToken", refreshToken, cookieOptions);
 
-    return response.json({
-      message: "Login successfully",
+    return res.json({
+      message: "Login successful",
       error: false,
       success: true,
       data: { accessToken, refreshToken },
     });
-  } catch (error) {
-    console.error("🔥 LoginController error:", error);
-    return response.status(500).json({
-      message: error.message || "Internal server error",
+  } catch (err) {
+    console.error("🔥 LoginController Error:", err);
+    return res.status(500).json({
+      message: err.message || "Internal Server Error",
       error: true,
       success: false,
     });
   }
-}
+};
 
 // 🟢 Refresh Token
-export async function refreshTokenController(request, response) {
+export const refreshTokenController = async (req, res) => {
   try {
-    const refreshToken =
-      request.cookies.refreshToken || request.body.refreshToken;
-
-    if (!refreshToken) {
-      return response.status(401).json({
-        message: "Refresh token not provided",
+    const token = req.cookies.refreshToken || req.body.refreshToken;
+    if (!token) {
+      return res.status(401).json({
+        message: "Refresh token missing",
         error: true,
         success: false,
       });
     }
 
-    let verifyToken;
+    let payload;
     try {
-      verifyToken = jwt.verify(
-        refreshToken,
-        process.env.SECRET_KEY_REFRESH_TOKEN
-      );
-    } catch (err) {
-      return response.status(403).json({
+      payload = jwt.verify(token, process.env.SECRET_KEY_REFRESH_TOKEN);
+    } catch {
+      return res.status(403).json({
         message: "Invalid or expired refresh token",
         error: true,
         success: false,
       });
     }
 
-    const userId = verifyToken?.id;
-    const newAccessToken = await generatedAccessToken(userId);
+    const user = await UserModel.findById(payload.id);
+    if (!user || user.refresh_token !== token) {
+      return res.status(403).json({
+        message: "Token mismatch or user not found",
+        error: true,
+        success: false,
+      });
+    }
 
-    const cookiesOption = {
+    const newAccessToken = generateAccessToken(user._id);
+    const cookieOptions = {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
     };
+    res.cookie("accessToken", newAccessToken, cookieOptions);
 
-    response.cookie("accessToken", newAccessToken, cookiesOption);
-
-    return response.json({
+    return res.json({
       message: "New access token generated",
-      error: false,
       success: true,
+      error: false,
       data: { accessToken: newAccessToken },
     });
-  } catch (error) {
-    console.error("🔥 RefreshTokenController error:", error);
-    return response.status(500).json({
-      message: error.message || "Internal server error",
+  } catch (err) {
+    console.error("🔥 RefreshTokenController Error:", err);
+    return res.status(500).json({
+      message: err.message || "Internal Server Error",
       error: true,
       success: false,
     });
   }
-}
+};
+
 
 // 🟢 Logout
 export async function logoutController(request, response) {
@@ -341,3 +363,4 @@ export async function verifyForgotPasswordOtp(request, response) {
     success: true,
   });
 }
+
