@@ -2,6 +2,8 @@ Quick Commerce Web Application – FlashBasket
 
 A MERN stack-based quick commerce platform that allows users to browse products, add to cart, and place orders with an admin dashboard for product and order management.
 
+Live Demo:- https://quick-commerce-web-application-wir1.onrender.com
+
 🚀 Setup Instructions
 1. Clone the repository
 
