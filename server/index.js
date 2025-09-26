@@ -36,7 +36,7 @@ app.use(helmet({
 }))
 
 // ✅ Correct PORT fallback
-const PORT = process.env.PORT || 8080
+const PORT = process.env.PORT ||" https://quick-commerce-web-application.onrender.com"
 
 app.get("/", (req, res) => {
   res.json({
@@ -58,4 +58,5 @@ connectDB().then(() => {
     console.log("✅ Server is running on port", PORT)
   })
 })
+
 
