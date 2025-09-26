@@ -19,7 +19,7 @@ const app = express()
 
 // ✅ Proper CORS setup
 const corsOptions = {
-  origin: process.env.FRONTEND_URL,   // http://localhost:5173
+  origin: "https://quick-commerce-web-application-wir1.onrender.com",   
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
@@ -58,3 +58,4 @@ connectDB().then(() => {
     console.log("✅ Server is running on port", PORT)
   })
 })
+
