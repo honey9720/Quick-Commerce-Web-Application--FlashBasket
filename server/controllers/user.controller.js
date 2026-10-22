@@ -1,11 +1,8 @@
+
 import UserModel from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
-import generatedAccessToken from "../utils/generatedAccessToken.js";
-import generatedRefreshToken from "../utils/generatedRefreshToken.js";
 import jwt from "jsonwebtoken";
 
-// 🟢 Register
-import UserModel from "../models/user.model.js";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 
