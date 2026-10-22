@@ -4,7 +4,7 @@ import bcryptjs from "bcryptjs";
 import jwt from "jsonwebtoken";
 
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+
 
 // 🔑 Generate Access Token
 const generateAccessToken = (userId) => {
